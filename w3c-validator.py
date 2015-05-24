@@ -7,6 +7,8 @@ License:   MIT
 Email:     srackham@gmail.com
 '''
 
+from __future__ import (print_function,)
+
 import os
 import sys
 import time
@@ -20,7 +22,7 @@ css_validator_url = 'http://jigsaw.w3.org/css-validator/validator'
 verbose_option = False
 
 def message(msg):
-    print >> sys.stderr, msg
+    print(msg, file=sys.stderr)
 
 def verbose(msg):
     if verbose_option:
