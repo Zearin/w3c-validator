@@ -39,23 +39,19 @@ def validate(filename):
     if filename.startswith('http://'):
         # Submit URI with GET.
         if filename.endswith('.css'):
-            cmd = ('curl -sG -d uri=%s -d output=json -d warning=0 %s'
-                    % (quoted_filename, css_validator_url))
+            cmd = ('curl -sG -d uri={0} -d output=json -d warning=0 {1}'.format(quoted_filename, css_validator_url))
         else:
-            cmd = ('curl -sG -d uri=%s -d output=json %s'
-                    % (quoted_filename, html_validator_url))
+            cmd = ('curl -sG -d uri={0} -d output=json {1}'.format(quoted_filename, html_validator_url))
     else:
         # Upload file as multipart/form-data with POST.
         if filename.endswith('.css'):
-            cmd = ('curl -sF "file=@%s;type=text/css" -F output=json -F warning=0 %s'
-                    % (quoted_filename, css_validator_url))
+            cmd = ('curl -sF "file=@{0};type=text/css" -F output=json -F warning=0 {1}'.format(quoted_filename, css_validator_url))
         else:
-            cmd = ('curl -sF "uploaded_file=@%s;type=text/html" -F output=json %s'
-                    % (quoted_filename, html_validator_url))
+            cmd = ('curl -sF "uploaded_file=@{0};type=text/html" -F output=json {1}'.format(quoted_filename, html_validator_url))
     verbose(cmd)
     status,output = commands.getstatusoutput(cmd)
     if status != 0:
-        raise OSError (status, 'failed: %s' % cmd)
+        raise OSError (status, 'failed: {0}'.format(cmd))
     verbose(output)
     try:
         result = json.loads(output)
@@ -72,21 +68,21 @@ if __name__ == '__main__':
     else:
         args = sys.argv[1:]
     if len(args) == 0:
-        message('usage: %s [--verbose] FILE|URL...' % os.path.basename(sys.argv[0]))
+        message('usage: {0} [--verbose] FILE|URL...'.format(os.path.basename(sys.argv[0])))
         exit(1)
     errors = 0
     warnings = 0
     for f in args:
-        message('validating: %s ...' % f)
+        message('validating: {0} ...'.format(f))
         retrys = 0
         while retrys < 2:
             result = validate(f)
             if result:
                 break
             retrys += 1
-            message('retrying: %s ...' % f)
+            message('retrying: {0} ...'.format(f))
         else:
-            message('failed: %s' % f)
+            message('failed: {0}'.format(f))
             errors += 1
             continue
         if f.endswith('.css'):
@@ -95,15 +91,15 @@ if __name__ == '__main__':
             errors += errorcount
             warnings += warningcount
             if errorcount > 0:
-                message('errors: %d' % errorcount)
+                message('errors: {0!n}'.format(errorcount))
             if warningcount > 0:
-                message('warnings: %d' % warningcount)
+                message('warnings: {0!n}'.format(warningcount))
         else:
             for msg in result['messages']:
-                if 'lastLine' in msg:
-                    message('%(type)s: line %(lastLine)d: %(message)s' % msg)
+                if 'lastLine' in nmsg:
+                    message('{type!s}: line {lastLine!d}: {message!s}'.format(**msg))
                 else:
-                    message('%(type)s: %(message)s' % msg)
+                    message('{type!s}: {message!s}'.format(msg))
                 if msg['type'] == 'error':
                     errors += 1
                 else:
