@@ -51,7 +51,7 @@ def validate(filename):
     verbose(cmd)
     status,output = commands.getstatusoutput(cmd)
     if status != 0:
-        raise OSError (status, 'failed: {0}'.format(cmd))
+        raise OSError(status, 'failed: {0}'.format(cmd))
     verbose(output)
     try:
         result = json.loads(output)
@@ -59,9 +59,10 @@ def validate(filename):
         result = ''
     time.sleep(2)   # Be nice and don't hog the free validator service.
     return result
+    
 
-
-if __name__ == '__main__':
+def parse_argv(argv):
+    global verbose_option
     if len(sys.argv) >= 2 and sys.argv[1] == '--verbose':
         verbose_option = True
         args = sys.argv[2:]
@@ -70,8 +71,13 @@ if __name__ == '__main__':
     if len(args) == 0:
         message('usage: {0} [--verbose] FILE|URL...'.format(os.path.basename(sys.argv[0])))
         exit(1)
-    errors = 0
-    warnings = 0
+    return args
+
+
+def main():
+    args = parse_argv(sys.argv)
+    errors, warnings = 0, 0
+    
     for f in args:
         message('validating: {0} ...'.format(f))
         retrys = 0
@@ -85,9 +91,11 @@ if __name__ == '__main__':
             message('failed: {0}'.format(f))
             errors += 1
             continue
+        
         if f.endswith('.css'):
-            errorcount = result['cssvalidation']['result']['errorcount']
-            warningcount = result['cssvalidation']['result']['warningcount']
+            css_result = result['cssvalidation']['result']
+            errorcount = css_result['errorcount']
+            warningcount = css_result['warningcount']
             errors += errorcount
             warnings += warningcount
             if errorcount > 0:
@@ -96,8 +104,8 @@ if __name__ == '__main__':
                 message('warnings: {0!n}'.format(warningcount))
         else:
             for msg in result['messages']:
-                if 'lastLine' in nmsg:
-                    message('{type!s}: line {lastLine!d}: {message!s}'.format(**msg))
+                if 'lastLine' in msg:
+                    message('{type!s}: line {lastLine}: {message!s}'.format(**msg))
                 else:
                     message('{type!s}: {message!s}'.format(msg))
                 if msg['type'] == 'error':
@@ -106,3 +114,6 @@ if __name__ == '__main__':
                     warnings += 1
     if errors:
         exit(1)
+    
+if __name__ == '__main__':
+    main()
